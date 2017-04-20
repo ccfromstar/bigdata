@@ -34,8 +34,16 @@ exports.index = function(req, res) {
 	res.render("index");
 }
 
+exports.home = function(req, res) {
+	res.render("home");
+}
+
 exports.carpool = function(req, res) {
 	res.render("carpool");
+}
+
+exports.summary = function(req, res) {
+	res.render("summary");
 }
 
 exports.servicedo = function(req, res) {
@@ -115,7 +123,7 @@ exports.servicedo = function(req, res) {
 			res.send(result);
 		});
 	}else if(_sql == "getDetail") {
-		var sql = "select * from v_data order by id desc";
+		var sql = "select * from v_data order by date desc";
 		mysql.query(sql, function(err, result) {
 			if(err) return console.error(err.stack);
 			res.send(result);
@@ -125,6 +133,33 @@ exports.servicedo = function(req, res) {
 		mysql.query(sql, function(err, result) {
 			if(err) return console.error(err.stack);
 			res.send(result);
+		});
+	}else if(_sql == "getSummary"){
+		var date1 = req.param("date1");
+		var date2 = req.param("date2");
+		var sql1 = "select sum(price) as sum from salary where date >='"+date1+"' and date <='"+date2+"'";
+		mysql.query(sql1, function(err, result1) {
+			if(err) return console.error(err.stack);
+			//console.log(result1[0].sum);
+			var sql2 = "select sum(price) as sum from carpooling where date >='"+date1+"' and date <='"+date2+"'";
+			mysql.query(sql2, function(err, result2) {
+				if(err) return console.error(err.stack);
+				var sql3 = "select sum(price) as sum from bigdata where date >='"+date1+"' and date <='"+date2+"'";
+				mysql.query(sql3, function(err, result3) {
+					if(err) return console.error(err.stack);
+					var sql4 = "select sum(price) as sum from other where date >='"+date1+"' and date <='"+date2+"'";
+					mysql.query(sql4, function(err, result4) {
+						if(err) return console.error(err.stack);
+						var o = {
+							salary:result1[0].sum,
+							carpooling:result2[0].sum,
+							bigdata:result3[0].sum,
+							other:result4[0].sum
+						}
+						res.json(o);
+					});
+				});
+			});
 		});
 	}
 }
